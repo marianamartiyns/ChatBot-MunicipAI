@@ -1,95 +1,130 @@
-from sidrapy import get_table
+import os
+import requests
 import pandas as pd
 
-'''
-Mapeando os temas do SIDRA para os códigos de tabela do IBGE.
-
-1411 - População Residente: Dados sobre a população residente no Brasil, estados e municípios.
-1943 - PIB dos Municípios e Estados: Produto Interno Bruto (PIB) dos estados e municípios brasileiros.
-2919 - Índice de Preços ao Consumidor: Índices de preços para o cálculo da inflação.
-2730 - Taxa de Mortalidade: Taxas de mortalidade geral, por faixa etária e causas específicas de morte.
-4310 - Educação (Matrículas de Ensino Fundamental e Médio): Dados sobre matrículas no ensino fundamental e médio.
-5931 - Emprego e Rendimento do Trabalho: Informações sobre emprego, taxas de desemprego e rendimentos do trabalho.
-2450 - Infraestrutura e Saneamento: Dados sobre serviços de saneamento básico e infraestrutura.
-2106 - Saúde (Equipamentos e Recursos): Dados sobre recursos de saúde disponíveis nos municípios.
-5063 - Agricultura (Produção): Dados sobre a produção agrícola por município.
-6552 - Transporte (Frota de Veículos): Dados sobre o transporte e frota de veículos nos municípios.
-
-'''
-
-# Dicionários com os códigos IBGE de estados e alguns municípios para exemplo
-CODES_IBGE_ESTADOS = {
-    "são paulo": "35", "rio de janeiro": "33", "bahia": "29", "minas gerais": "31",
-    "sp": "35", "rj": "33", "ba": "29", "mg": "31"
+# === Indicadores disponíveis para municípios ===
+indicadores_municipios = {
+    "populacao_total": {"tabela": 6579},
+    "pib_municipal": {"tabela": 5938}
+    # "mortalidade_infantil": {"tabela": 1419}
 }
 
-municipios_ibge = {
-    "são paulo": "3550308",
-    "rio de janeiro": "3304557",
-    "salvador": "2927408",
-    "belo horizonte": "3106200"
+# === Indicadores disponíveis apenas para estados (ou Brasil) ===
+indicadores_estados = {
+    "densidade_demografica": {"tabela": 6579},
+    "populacao_urbana_rural": {"tabela": 6579},
+
+    "renda_media_domiciliar": {"tabela": 5128},
+    # "percentual_renda_ate_meio_salario": {"tabela": 6411},
+    "atividade_economica_setores": {"tabela": 5938},
+    
+    "agua_encanada": {"tabela": 7412},
+    "esgoto_sanitario": {"tabela": 7412},
+    "coleta_lixo": {"tabela": 7412},
+    "energia_eletrica": {"tabela": 7412},
+
+    "alfabetizacao": {"tabela": 7473},
+    "escolaridade_fundamental_medio_superior": {"tabela": 7473},
+    "frequencia_escolar": {"tabela": 7473},
+
+    # "cobertura_prenatal": {"tabela": 8183},
+    "estabelecimentos_saude": {"tabela": 3366},
+
+    "taxa_desocupacao": {"tabela": 4093},
+    "proporcao_ocupados": {"tabela": 4093},
+    # "tipo_ocupacao": {"tabela": 4093},
+
+    "receita_despesa_publica": {"tabela": 7789},
+    # "idhm": {"tabela": 6288},
+    # "indice_gini": {"tabela": 6399}
 }
 
-def consultar_sidra(tabela, localidade=None, ano="2021"):
+# === Carregar lista de municípios ===
+def carregar_municipios(path_txt):
+    municipios = []
+    with open(path_txt, 'r', encoding='utf-8') as f:
+        for linha in f:
+            nome, codigo = linha.strip().split(',')
+            municipios.append({"nome": nome.strip(), "codigo": codigo.strip()})
+    return municipios
+
+# === Seleciona os indicadores com base no tipo de código IBGE ===
+def selecionar_indicadores_por_local(codigo_local):
     """
-    Consulta dados do SIDRA informando o código da tabela, a localidade (estado ou município)
-    e o ano desejado. (Feito com o ChatGPT)
-
-    Parâmetros:
-    - tabela (str): Código da tabela do SIDRA.
-    - localidade (str): Nome do estado ou município (opcional).
-    - ano (str): Ano da consulta (padrão: 2021).
-
-    Retorno:
-    - DataFrame com os dados consultados.
+    - 7 dígitos: município (n6)
+    - 2 dígitos: estado (n3)
     """
-    try:
-        territorial_level = "1"  # Nível Brasil por padrão
-        ibge_code = "all"  # Código para trazer todos os dados disponíveis
+    if len(codigo_local) == 7:
+        return indicadores_municipios
+    elif len(codigo_local) == 2:
+        return indicadores_estados
+    else:
+        raise ValueError(f"Código inválido: {codigo_local}")
 
-        # Se uma localidade foi informada, verificamos se é estado ou município
-        if localidade:
-            localidade_lower = localidade.lower()
-            if localidade_lower in CODES_IBGE_ESTADOS:
-                ibge_code = CODES_IBGE_ESTADOS[localidade_lower]  # Código do estado
-                territorial_level = "3"  # Estados
-            elif localidade_lower in municipios_ibge:
-                ibge_code = municipios_ibge[localidade_lower]  # Código do município
-                territorial_level = "4"  # Municípios
-            else:
-                raise ValueError("Localidade não encontrada. Verifique o nome do estado ou município.")
+# === Coleta dados de qualquer local (município ou estado) ===
+def coletar_dados_local(codigo_local):
+    indicadores = selecionar_indicadores_por_local(codigo_local)
+    dfs = []
 
-        # Requisição para o SIDRA
-        dados = get_table(
-            table_code=str(tabela),
-            territorial_level=str(territorial_level),
-            period=ano,
-            ibge_territorial_code=str(ibge_code)
-        )
+    for nome_indicador, info in indicadores.items():
+        tabela = info["tabela"]
+        url = f"https://apisidra.ibge.gov.br/values/t/{tabela}/n6/{codigo_local}/p/last" if len(codigo_local) == 7 \
+            else f"https://apisidra.ibge.gov.br/values/t/{tabela}/n3/{codigo_local}/p/last"
 
-        # Converter para DataFrame e exibir os primeiros dados
-        df = pd.DataFrame(dados)
-        print(f"\n📊 Dados da Tabela {tabela} para {localidade or 'Brasil'} no ano {ano}:")
-        print(df.head())
+        headers = {"User-Agent": "Mozilla/5.0"}
+        # print(f"Buscando {nome_indicador} (tabela {tabela}) para {codigo_local}...")
 
-        return df
-    except Exception as e:
-        print(f"Erro ao consultar SIDRA: {e}")
-        return None
+        response = requests.get(url, headers=headers)
 
-# Exemplos de uso -  Percebi que o nome real das colunas está na linha (0), por isso estou redefinindo com iloc[0] (sugestão: colocar essa modificação dentro da função)
+        if response.status_code != 200:
+            print(f"[Erro] Tabela {tabela}: código {response.status_code}")
+            print("Resposta:", response.text[:200])
+            continue
 
-df1 = consultar_sidra("1411")  # População do Brasil - outros codigos estão dando erro, mas o 1411 está funcionando
-df1.columns = df1.iloc[0]  # Define a primeira linha como cabeçalho
-df1 = df1[1:] 
-df1 = df1.reset_index(drop=True)  # Reseta os índices para organizar melhor
+        try:
+            dados = response.json()
+            colunas = list(dados[0].values())
+            registros = [list(item.values()) for item in dados[1:]]
+            df = pd.DataFrame(registros, columns=colunas)
+            df['indicador'] = nome_indicador
+            dfs.append(df)
+        except Exception as e:
+            print(f"[Erro JSON] Indicador {nome_indicador}: {e}")
+            print("Resposta:", response.text[:200])
 
-print(df1.head())
-print(df1.columns)
+    if dfs:
+        return pd.concat(dfs, ignore_index=True)
+    else:
+        print("Nenhum dado coletado.")
+        return pd.DataFrame()
 
-# df_pib = consultar_sidra("1943")
-# print(df_pib.head())
-# print(df_pib.columns)
 
-# tá dando erro: df2 = consultar_sidra("1411", "são paulo")  # População do Estado de São Paulo
-# tá dando erro: df3 = consultar_sidra("1411", "salvador")  # População do Município de Salvador
+# === Exemplo de uso ===
+if __name__ == "__main__":
+    path_municipios = os.path.join(os.path.dirname(__file__), 'municipios', 'municipios_filtrados.txt')
+    municipios = carregar_municipios(path_municipios)
+
+    if not municipios:
+        print("⚠️ Nenhum município foi carregado. Verifique o arquivo.")
+    else:
+        municipio = municipios[0]  # Primeiro da lista
+        cod_municipio = municipio["codigo"]
+        cod_estado = cod_municipio[:2]  # primeiros 2 dígitos
+
+        # Coleta dados do município
+        df_mun = coletar_dados_local(cod_municipio)
+        print(f"\n📊 Indicadores do Município: {municipio['nome']} ({cod_municipio})")
+        if not df_mun.empty:
+            for ind in df_mun["indicador"].unique():
+                print(f"\n🔹 {ind}")
+                print(df_mun[df_mun["indicador"] == ind][["Valor", "Ano"]].head(5))
+
+        # Coleta dados do estado
+        df_estado = coletar_dados_local(cod_estado)
+        print(f"\n📊 Indicadores do Estado: código {cod_estado}")
+        if not df_estado.empty:
+            for ind in df_estado["indicador"].unique():
+                print(f"\n🔹 {ind}")
+                print(df_estado[df_estado["indicador"] == ind][["Valor", "Ano"]].head(5))
+
+
