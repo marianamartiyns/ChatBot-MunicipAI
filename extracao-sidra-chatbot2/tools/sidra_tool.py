@@ -94,3 +94,48 @@ def get_cod_estado(nome_estado):
         'Rio Grande do Sul': '43',
     }
     return estados.get(nome_estado.strip().title(), nome_estado)
+
+
+# ================= ADCIONAL (MARIANA) ====================
+def consultar_sidra_chatbot(pergunta: str) -> str:
+    from tools.sidra_tool import consultar_sidra, get_municipios_mg, get_cod_estado
+
+    municipios = get_municipios_mg()
+    pergunta_lower = pergunta.lower()
+
+    # 1. Identifica o município
+    municipio_encontrado = next((m for m in municipios if m.lower() in pergunta_lower), None)
+    if municipio_encontrado:
+        localidade = municipios[municipio_encontrado]
+        nivel = "municipal"
+    else:
+        estado_encontrado = next((e for e in ["Minas Gerais", "Paraíba", "Pernambuco", "Paraná"] if e.lower() in pergunta_lower), None)
+        if estado_encontrado:
+            localidade = get_cod_estado(estado_encontrado)
+            nivel = "estadual"
+        else:
+            return "Não consegui identificar o município ou estado na sua pergunta."
+
+    # 2. Identifica a tabela e variável com base na pergunta
+    if "pib" in pergunta_lower:
+        tabela = "2938"
+        variaveis = "37"  # Exemplo: PIB total
+    elif "população" in pergunta_lower:
+        tabela = "6579"
+        variaveis = "93"  # Exemplo: população total
+    elif "leite" in pergunta_lower:
+        tabela = "1419"
+        variaveis = "214"  # Exemplo: produção de leite
+    else:
+        return "Não entendi qual indicador você quer consultar."
+
+    # 3. Chama a função principal
+    resultado = consultar_sidra(tabela, nivel, localidade, variaveis)
+    if isinstance(resultado, str):
+        return resultado
+    else:
+        try:
+            linha = resultado.iloc[0]
+            return f"{linha['Valor']} ({linha['Ano']}) — {linha.get('Unidade de Medida', '')}"
+        except:
+            return "Consulta realizada, mas não consegui interpretar os dados."

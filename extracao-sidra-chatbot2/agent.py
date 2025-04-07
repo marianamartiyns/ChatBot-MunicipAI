@@ -4,7 +4,8 @@ from langchain_groq import ChatGroq
 from langchain.tools import Tool
 import os
 from dotenv import load_dotenv
-from tools.sidra_tool import consultar_sidra
+# from tools.sidra_tool import consultar_sidra
+from tools.sidra_tool import consultar_sidra_chatbot  # nova função com parsing automático
 from tools.scraping_tool import buscar_info_web
 
 load_dotenv()
@@ -16,8 +17,8 @@ memory = ConversationSummaryBufferMemory(llm=llm, max_token_limit=500)
 tools = [
     Tool(
         name="consultar_sidra",
-        func=consultar_sidra,
-        description="Consulta dados do IBGE no SIDRA."
+        func=consultar_sidra_chatbot,  # ⚠️ MUDEI AQUI
+        description="Consulta dados do IBGE com base em uma pergunta (ex: 'PIB de Uberlândia', 'população de Contagem')."
     ),
     Tool(
         name="Busca Web",

@@ -3,6 +3,8 @@ import streamlit as st
 from langchain.tools import tool
 import pandas as pd
 
+# ========= Não está integrado no projeto ainda =============
+
 @tool
 def gerar_grafico(dados: pd.DataFrame, coluna_x: str, coluna_y: str, titulo: str = "Gráfico"):
     """
