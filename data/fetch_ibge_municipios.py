@@ -1,39 +1,45 @@
 import requests
-import pandas as pd
+from bs4 import BeautifulSoup
+import unicodedata
+import re
 
-# ================= RASCUNHO ==========================
-# ========= Não está integrado no projeto, falta ajeitar para colher mais informações especificas =============
+# =================== FAZ O SCRAPING DOS DADOS DO IBGE ===================
+# https://www.ibge.gov.br/cidades-e-estados/rn/acu.html
 
-# Primeiro, pega os estados com seus códigos
-estados_url = "https://servicodados.ibge.gov.br/api/v1/localidades/estados"
-res = requests.get(estados_url)
-estados = res.json()
+def slugify(texto: str) -> str:
+    texto = unicodedata.normalize('NFKD', texto)
+    texto = ''.join([c for c in texto if not unicodedata.combining(c)])
+    texto = re.sub(r'[^a-zA-Z0-9\s-]', '', texto)
+    return texto.lower().replace(' ', '-')
 
-municipios_lista = []
+def extrair_dados_municipio(uf: str, municipio: str) -> dict:
+    """
+    Acessa a página do município no site do IBGE e extrai os indicadores principais.
+    """
+    slug_mun = slugify(municipio)
+    url = f'https://www.ibge.gov.br/cidades-e-estados/{uf.lower()}/{slug_mun}.html'
 
-# Para cada estado, pega os municípios
-for estado in estados:
-    uf_nome = estado['nome']
-    uf_sigla = estado['sigla']
-    uf_id = estado['id']
     
-    print(f'Pegando municípios de {uf_nome} ({uf_sigla})...')
-    
-    municipios_url = f"https://servicodados.ibge.gov.br/api/v1/localidades/estados/{uf_id}/municipios"
-    res_mun = requests.get(municipios_url)
-    municipios = res_mun.json()
-    
-    for municipio in municipios:
-        municipios_lista.append({
-            'estado': uf_nome,
-            'uf': uf_sigla,
-            'municipio': municipio['nome'],
-            'id_municipio': municipio['id']
-        })
+    headers = {"User-Agent": "Mozilla/5.0"}
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        return {"erro": f"Erro ao acessar página: {e}", "url": url}
 
-# Transforma em DataFrame
-df_municipios = pd.DataFrame(municipios_lista)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    indicadores = soup.select('.indicador')
 
-print(df_municipios.head())
-print(f'\nTotal de municípios coletados: {len(df_municipios)}')
-print(df_municipios.columns)
+    dados = {}
+    for ind in indicadores:
+        label = ind.select_one('.ind-label')
+        valor = ind.select_one('.ind-value')
+        if label and valor:
+            chave = unicodedata.normalize('NFKD', label.text).strip()
+            chave = re.sub(r'\s+', ' ', chave)
+            dados[chave] = valor.text.strip()
+    
+    dados['Município'] = municipio
+    dados['UF'] = uf.upper()
+    dados['Fonte'] = url
+    return dados

@@ -2,7 +2,7 @@ import os
 import requests
 import pandas as pd
 
-# ========= Já está integrado no projeto, pode editar para melhorar, incluive falta adicionar mais tabelas =============
+# ============= NO MOMENTO, NÃO ESTÁ PEGANDO
 # === Indicadores por tema ===
 
 indicadores_municipios = {
@@ -192,20 +192,13 @@ def mostrar_resumo(df, nome_local):
         print(f"\n🔹 {ind}")
         print(df_ind[colunas_mostrar].drop_duplicates().head(5))
 
-# === Exemplo de uso ===
-if __name__ == "__main__":
-    path_municipios = os.path.join(os.path.dirname(__file__), 'municipios', 'municipios_filtrados.txt')
-    municipios = carregar_municipios(path_municipios)
+def get_tabelas_disponiveis():
+    tabelas = {}
 
-    if not municipios:
-        print("⚠️ Nenhum município foi carregado. Verifique o arquivo.")
-    else:
-        municipio = municipios[23]
-        cod_municipio = municipio["codigo"]
-        cod_estado = cod_municipio[:2]
+    for nome, info in indicadores_municipios.items():
+        tabelas[str(info["tabela"])] = nome
 
-        df_mun = coletar_dados_local(cod_municipio)
-        mostrar_resumo(df_mun, f"Município: {municipio['nome']} ({cod_municipio})")
+    for nome, info in indicadores_estados.items():
+        tabelas[str(info["tabela"])] = nome
 
-        df_estado = coletar_dados_local(cod_estado)
-        mostrar_resumo(df_estado, f"Estado: código {cod_estado}")
+    return tabelas

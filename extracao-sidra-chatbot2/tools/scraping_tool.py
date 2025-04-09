@@ -18,3 +18,4 @@ def buscar_info_web(termo):
         return f"Encontrei algo no IBGE: [{resultados[0].text}]({resultados[0]['href']})"
     else:
         return "Nenhuma informação relevante encontrada."
+    
