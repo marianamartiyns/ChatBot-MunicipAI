@@ -1,0 +1,35 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* ================================
+   Variáveis globais (modo escuro fixo)
+================================ */
+:root {
+  --background: #0a0a0a;
+  --foreground: #084E91;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-sans: 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Courier New', monospace;
+}
+
+/* ================================
+   Estilos globais
+================================ */
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #084E91;
+  border-radius: 10px;
+}

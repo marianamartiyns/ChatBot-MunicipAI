@@ -1,0 +1,110 @@
+{
+  "11": {
+    "nome": "Rondônia",
+    "sigla": "RO"
+  },
+  "12": {
+    "nome": "Acre",
+    "sigla": "AC"
+  },
+  "13": {
+    "nome": "Amazonas",
+    "sigla": "AM"
+  },
+  "14": {
+    "nome": "Roraima",
+    "sigla": "RR"
+  },
+  "15": {
+    "nome": "Pará",
+    "sigla": "PA"
+  },
+  "16": {
+    "nome": "Amapá",
+    "sigla": "AP"
+  },
+  "17": {
+    "nome": "Tocantins",
+    "sigla": "TO"
+  },
+  "21": {
+    "nome": "Maranhão",
+    "sigla": "MA"
+  },
+  "22": {
+    "nome": "Piauí",
+    "sigla": "PI"
+  },
+  "23": {
+    "nome": "Ceará",
+    "sigla": "CE"
+  },
+  "24": {
+    "nome": "Rio Grande do Norte",
+    "sigla": "RN"
+  },
+  "25": {
+    "nome": "Paraíba",
+    "sigla": "PB"
+  },
+  "26": {
+    "nome": "Pernambuco",
+    "sigla": "PE"
+  },
+  "27": {
+    "nome": "Alagoas",
+    "sigla": "AL"
+  },
+  "28": {
+    "nome": "Sergipe",
+    "sigla": "SE"
+  },
+  "29": {
+    "nome": "Bahia",
+    "sigla": "BA"
+  },
+  "31": {
+    "nome": "Minas Gerais",
+    "sigla": "MG"
+  },
+  "32": {
+    "nome": "Espírito Santo",
+    "sigla": "ES"
+  },
+  "33": {
+    "nome": "Rio de Janeiro",
+    "sigla": "RJ"
+  },
+  "35": {
+    "nome": "São Paulo",
+    "sigla": "SP"
+  },
+  "41": {
+    "nome": "Paraná",
+    "sigla": "PR"
+  },
+  "42": {
+    "nome": "Santa Catarina",
+    "sigla": "SC"
+  },
+  "43": {
+    "nome": "Rio Grande do Sul",
+    "sigla": "RS"
+  },
+  "50": {
+    "nome": "Mato Grosso do Sul",
+    "sigla": "MS"
+  },
+  "51": {
+    "nome": "Mato Grosso",
+    "sigla": "MT"
+  },
+  "52": {
+    "nome": "Goiás",
+    "sigla": "GO"
+  },
+  "53": {
+    "nome": "Distrito Federal",
+    "sigla": "DF"
+  }
+}
