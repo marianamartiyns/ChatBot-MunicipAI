@@ -3,7 +3,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.agent.agent import responder_pergunta  # importa do agent.py
+from backend.agent.agent import responder_pergunta 
+from backend.tools.fetch_wikipedia import coletar_dados_wikipedia
 
 app = FastAPI()
 
@@ -31,6 +32,11 @@ def responder(pergunta: Pergunta):
     resposta = responder_pergunta(pergunta.texto)
     return {"resposta": resposta}
 
+@app.get("/mensagem-inicial")
+def mensagem_inicial():
+    from backend.agent.agent import mensagem_inicial
+    return {"mensagem": mensagem_inicial}
+
 # ==================== FERRAMENTAS PARA O PAINEL ====================
 from backend.tools.fetch_ibge import extrair_dados_municipio, carregar_dados_estaduais
 from backend.tools.fetch_ibge import ESTADOS, MUNICIPIOS
@@ -56,4 +62,21 @@ def lista_municipios():
     return [{"codigo": cod, **dados} for cod, dados in MUNICIPIOS.items()]
 
 
+# ==================== FERRAMENTAS WIKIPEDIA ====================
 
+class Nome(BaseModel):
+    nome: str
+
+@app.post("/wikipedia-municipio")
+def wikipedia_municipio(body: Nome):
+    try:
+        return coletar_dados_wikipedia(body.nome, tipo="municipio")
+    except Exception as e:
+        return {"erro": str(e)}
+
+@app.post("/wikipedia-estado")
+def wikipedia_estado(body: Nome):
+    try:
+        return coletar_dados_wikipedia(body.nome, tipo="estado")
+    except Exception as e:
+        return {"erro": str(e)}

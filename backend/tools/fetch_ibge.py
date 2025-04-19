@@ -14,13 +14,21 @@ with open("backend/data/estados.json", encoding="utf-8") as f:
 with open("backend/data/municipios.json", encoding="utf-8") as f:
     MUNICIPIOS = json.load(f)
 
+# ==================== FUNÇÃO DE NORMALIZAÇÃO ====================
+
+def normalizar(texto: str) -> str:
+    return unicodedata.normalize("NFKD", texto).encode("ASCII", "ignore").decode("ASCII").lower().strip()
+
+# ==================== FUNÇÕES AUXILIARES DE LOCALIZAÇÃO ====================
+
 def get_sigla_uf_por_codigo(cod_estado: str) -> str:
     estado = ESTADOS.get(str(cod_estado).zfill(2))
     return estado["sigla"].lower() if estado else None
 
 def get_uf_por_nome(nome_estado: str) -> str:
+    nome_normalizado = normalizar(nome_estado)
     for est in ESTADOS.values():
-        if est["nome"].lower() == nome_estado.lower():
+        if est.get("nome_normalizado") == nome_normalizado:
             return est["sigla"].lower()
     return None
 
@@ -38,16 +46,11 @@ def get_uf_e_nome_municipio(codigo_municipio: str) -> tuple:
     uf = get_sigla_uf_por_codigo(cod_estado)
     return uf, mun["nome"]
 
-# ==================== FUNÇÕES GERAIS ====================
+# ==================== PARÂMETROS DE SCRAPING ====================
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 }
-
-def normalizar_texto(texto: str) -> str:
-    texto = unicodedata.normalize('NFKD', texto)
-    texto = ''.join([c for c in texto if not unicodedata.combining(c)])
-    return texto.strip()
 
 # ==================== SCRAPING ESTADUAL ====================
 
@@ -68,7 +71,7 @@ def extrair_indicadores_estado(uf: str) -> dict:
         label = ind.select_one('.ind-label')
         valor = ind.select_one('.ind-value')
         if label and valor:
-            chave = normalizar_texto(label.text)
+            chave = normalizar(label.text)
             dados[chave] = valor.text.strip()
 
     dados['UF'] = uf.upper()
@@ -88,10 +91,9 @@ def coletar_indicadores_estaduais() -> pd.DataFrame:
 # ==================== SCRAPING MUNICIPAL ====================
 
 def slugify(texto: str) -> str:
-    texto = unicodedata.normalize('NFKD', texto)
-    texto = ''.join([c for c in texto if not unicodedata.combining(c)])
-    texto = re.sub(r'[^a-zA-Z0-9\s-]', '', texto)
-    return texto.lower().replace(' ', '-')
+    texto = normalizar(texto)
+    texto = re.sub(r'[^a-z0-9\s-]', '', texto)
+    return texto.replace(' ', '-')
 
 def extrair_dados_municipio(cod_municipio: str) -> dict:
     uf, nome_mun = get_uf_e_nome_municipio(cod_municipio)
@@ -115,7 +117,7 @@ def extrair_dados_municipio(cod_municipio: str) -> dict:
         label = ind.select_one('.ind-label')
         valor = ind.select_one('.ind-value')
         if label and valor:
-            chave = normalizar_texto(label.text)
+            chave = normalizar(label.text)
             dados[chave] = valor.text.strip()
 
     dados['Município'] = nome_mun

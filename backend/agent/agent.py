@@ -1,21 +1,13 @@
-# backend/agent/agent.py
-
 import json
 import os
+import unicodedata
+import re
 from dotenv import load_dotenv
-from langchain.agents import initialize_agent, Tool, AgentType
 from langchain.memory import ConversationBufferMemory
 from langchain.schema import SystemMessage
 from langchain_groq import ChatGroq
 
-# Imports das ferramentas reais
-from backend.tools.fetch_sidra import responder_coleta_sidra
-from backend.tools.fetch_ibge import (
-    extrair_dados_municipio,
-    carregar_dados_estaduais
-)
-
-# Carregamento de dados locais
+# === Carregamento dos dados locais ===
 with open("backend/data/municipios.json", encoding="utf-8") as f:
     MUNICIPIOS = json.load(f)
 
@@ -26,100 +18,107 @@ with open("backend/data/estados.json", encoding="utf-8") as f:
 load_dotenv()
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
-# === Configuração da LLM via GROQ ===
+# === Configuração da LLM ===
 llm = ChatGroq(
-    temperature=0.3,
+    temperature=0.2,
     model_name="llama3-8b-8192",
     api_key=GROQ_API_KEY
 )
 
-# === Memória do agente  ===
+# === Memória de conversa (caso necessário futuramente) ===
 memory = ConversationBufferMemory(memory_key="chat_history")
 
-# === Funções auxiliares ===
-def _extrair_dados_municipio_via_pergunta(pergunta: str) -> str:
-    pergunta_lower = pergunta.lower()
+# === Ferramentas de busca ===
+from backend.tools.fetch_ibge import extrair_dados_municipio, carregar_dados_estaduais
+from backend.tools.fetch_wikipedia import coletar_dados_wikipedia
+
+# === Função de normalização ===
+def normalizar_texto(texto):
+    if not texto:
+        return ""
+    texto = unicodedata.normalize("NFKD", texto)
+    texto = texto.encode("ASCII", "ignore").decode("ASCII")
+    texto = re.sub(r"[^\w\s]", "", texto)
+    return texto.lower().strip()
+
+# === Identificação da localidade ===
+def identificar_local(pergunta: str):
+    pergunta_norm = normalizar_texto(pergunta)
+    palavras = set(pergunta_norm.split())
+
     for cod, mun in MUNICIPIOS.items():
-        if mun["nome"].lower() in pergunta_lower:
-            dados = extrair_dados_municipio(cod)
-            return "\n".join([f"- **{k}**: {v}" for k, v in dados.items() if k != "Fonte"])
-    return "Município não identificado. Por favor, informe um nome correto."
+        nome = mun.get("nome", "")
+        nome_norm = normalizar_texto(nome)
+        if len(nome_norm) <= 3:
+            continue
+        if nome_norm in pergunta_norm or nome_norm in palavras:
+            return "municipio", cod, nome
 
-def _extrair_dados_estado_via_pergunta(pergunta: str) -> str:
-    pergunta_lower = pergunta.lower()
     for cod, est in ESTADOS.items():
-        if est["nome"].lower() in pergunta_lower:
-            dados = carregar_dados_estaduais(cod)
-            return "\n".join([f"- **{k}**: {v}" for k, v in dados.items() if k != "Fonte"])
-    return "Estado não identificado. Por favor, informe um nome correto."
+        nome = est.get("nome", "")
+        sigla = est.get("sigla", "")
+        nome_norm = normalizar_texto(nome)
+        sigla_norm = normalizar_texto(sigla)
+        if nome_norm in pergunta_norm or sigla_norm in palavras:
+            return "estado", cod, nome
 
-# === Ferramentas do agente ===
-tools = [
-    Tool(
-        name="ConsultarIndicadoresSIDRA",
-        func=responder_coleta_sidra,
-        description="Use para obter dados como PIB, população ou indicadores do IBGE via SIDRA."
-    ),
-    Tool(
-        name="ConsultarMunicipioScraping",
-        func=_extrair_dados_municipio_via_pergunta,
-        description="Use para consultar indicadores de um município usando a página do IBGE."
-    ),
-    Tool(
-        name="ConsultarEstadoScraping",
-        func=_extrair_dados_estado_via_pergunta,
-        description="Use para consultar indicadores de um estado usando a página do IBGE."
-    ),
-]
+    return "", "", ""
 
-# === System prompt (com personalidade e instrução de segurança) ===
-with open("backend/agent/prompts/system_message.txt", encoding="utf-8") as f:
-    system_message = SystemMessage(content=f.read())
+# === Coleta e formatação dos dados ===
+def coletar_dados_local(tipo: str, cod: str, nome: str) -> tuple[str, str]:
+    if tipo == "municipio":
+        dados = extrair_dados_municipio(cod)
+        if not dados:
+            dados = coletar_dados_wikipedia(nome, tipo="municipio")
+            fonte = "Wikipedia"
+        else:
+            fonte = "IBGE"
+    else:
+        dados = carregar_dados_estaduais(cod)
+        if not dados:
+            dados = coletar_dados_wikipedia(nome, tipo="estado")
+            fonte = "Wikipedia"
+        else:
+            fonte = "IBGE"
 
-# === Inicialização do agente ===
-agent = initialize_agent(
-    tools=tools,
-    llm=llm,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    memory=memory,
-    agent_kwargs={"system_message": system_message},
-    verbose=True
-)
+    texto_dados = "\n".join([f"- {k}: {v}" for k, v in dados.items() if k.lower() != "fonte"])
+    return texto_dados, fonte
 
-# === Formatação da resposta === *
-def formatar_resposta(resposta: str) -> str:
-    if not resposta or "Exception" in resposta:
-        return (
-            "Tivemos um problema ao processar a sua pergunta. "
-            "Tente novamente em alguns instantes.\n\n"
-        )
-
-    if "Município não identificado" in resposta or "Estado não identificado" in resposta:
-        return (
-            "Não conseguimos reconhecer o local informado. "
-            "Tente reformular usando o nome completo e correto do município ou estado.\n\n"
-            "Fontes consultadas: Lista de municípios e estados do IBGE."
-        )
-
-    if any(x in resposta.lower() for x in ["not found", "não disponível", "not valid", "not available"]):
-        return (
-            "A informação solicitada não está disponível nas fontes públicas consultadas no momento.\n\n"
-        )
-
-    # Supondo que o dado esteja certo, adiciona fonte padrão:
-    if "Fonte" not in resposta:
-        resposta += "\n\nFonte: IBGE (dados oficiais ou SIDRA)"
-    return resposta
-
-
-
-# === Função para uso externo ===
-'''def responder_pergunta(pergunta: str) -> str:
-    return agent.run(pergunta)'''
+# === Função principal do agente ===
 def responder_pergunta(pergunta: str) -> str:
     try:
-        resposta_bruta = agent.run(pergunta)
-        return formatar_resposta(resposta_bruta)
-    except Exception as e:
-        return "⚠️ Erro inesperado ao processar sua pergunta. Por favor, tente novamente."
+        tipo, cod, nome = identificar_local(pergunta)
 
+        if tipo:
+            dados_texto, fonte = coletar_dados_local(tipo, cod, nome)
+
+            prompt = f"""
+Você é um assistente de dados públicos que responde de forma **clara, direta e objetiva**.
+Use os dados abaixo para responder à pergunta do usuário. Se a informação exata não estiver nos dados, diga isso de forma curta e transparente — sem enrolar.
+
+Local consultado: {nome}
+Fonte: {fonte}
+Dados disponíveis:
+{dados_texto}
+
+Pergunta: {pergunta}
+
+Resposta:"""
+
+
+            resposta = llm.predict(prompt)
+            return f"{resposta}\n\n Fonte: {fonte}"
+
+        else:
+            # Pergunta sem local identificado — resposta genérica
+            resposta = llm.predict(f"Responda de forma clara e confiável: {pergunta}")
+            return resposta
+
+    except Exception as e:
+        return "⚠️ Ocorreu um erro inesperado ao processar sua pergunta. Tente novamente em instantes."
+
+# === Mensagem inicial automática ===
+mensagem_inicial = (
+    "Olá! 👋 Seja bem-vindo(a) ao assistente de dados municipais e estaduais do Brasil da Houer. "
+    "Estou aqui para te ajudar com dados reais e explicações claras. É só mandar sua pergunta! 😊"
+)

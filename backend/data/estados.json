@@ -1,110 +1,137 @@
 {
   "11": {
     "nome": "Rondônia",
-    "sigla": "RO"
+    "sigla": "RO",
+    "nome_normalizado": "rondonia"
   },
   "12": {
     "nome": "Acre",
-    "sigla": "AC"
+    "sigla": "AC",
+    "nome_normalizado": "acre"
   },
   "13": {
     "nome": "Amazonas",
-    "sigla": "AM"
+    "sigla": "AM",
+    "nome_normalizado": "amazonas"
   },
   "14": {
     "nome": "Roraima",
-    "sigla": "RR"
+    "sigla": "RR",
+    "nome_normalizado": "roraima"
   },
   "15": {
     "nome": "Pará",
-    "sigla": "PA"
+    "sigla": "PA",
+    "nome_normalizado": "para"
   },
   "16": {
     "nome": "Amapá",
-    "sigla": "AP"
+    "sigla": "AP",
+    "nome_normalizado": "amapa"
   },
   "17": {
     "nome": "Tocantins",
-    "sigla": "TO"
+    "sigla": "TO",
+    "nome_normalizado": "tocantins"
   },
   "21": {
     "nome": "Maranhão",
-    "sigla": "MA"
+    "sigla": "MA",
+    "nome_normalizado": "maranhao"
   },
   "22": {
     "nome": "Piauí",
-    "sigla": "PI"
+    "sigla": "PI",
+    "nome_normalizado": "piaui"
   },
   "23": {
     "nome": "Ceará",
-    "sigla": "CE"
+    "sigla": "CE",
+    "nome_normalizado": "ceara"
   },
   "24": {
     "nome": "Rio Grande do Norte",
-    "sigla": "RN"
+    "sigla": "RN",
+    "nome_normalizado": "rio grande do norte"
   },
   "25": {
     "nome": "Paraíba",
-    "sigla": "PB"
+    "sigla": "PB",
+    "nome_normalizado": "paraiba"
   },
   "26": {
     "nome": "Pernambuco",
-    "sigla": "PE"
+    "sigla": "PE",
+    "nome_normalizado": "pernambuco"
   },
   "27": {
     "nome": "Alagoas",
-    "sigla": "AL"
+    "sigla": "AL",
+    "nome_normalizado": "alagoas"
   },
   "28": {
     "nome": "Sergipe",
-    "sigla": "SE"
+    "sigla": "SE",
+    "nome_normalizado": "sergipe"
   },
   "29": {
     "nome": "Bahia",
-    "sigla": "BA"
+    "sigla": "BA",
+    "nome_normalizado": "bahia"
   },
   "31": {
     "nome": "Minas Gerais",
-    "sigla": "MG"
+    "sigla": "MG",
+    "nome_normalizado": "minas gerais"
   },
   "32": {
     "nome": "Espírito Santo",
-    "sigla": "ES"
+    "sigla": "ES",
+    "nome_normalizado": "espirito santo"
   },
   "33": {
     "nome": "Rio de Janeiro",
-    "sigla": "RJ"
+    "sigla": "RJ",
+    "nome_normalizado": "rio de janeiro"
   },
   "35": {
     "nome": "São Paulo",
-    "sigla": "SP"
+    "sigla": "SP",
+    "nome_normalizado": "sao paulo"
   },
   "41": {
     "nome": "Paraná",
-    "sigla": "PR"
+    "sigla": "PR",
+    "nome_normalizado": "parana"
   },
   "42": {
     "nome": "Santa Catarina",
-    "sigla": "SC"
+    "sigla": "SC",
+    "nome_normalizado": "santa catarina"
   },
   "43": {
     "nome": "Rio Grande do Sul",
-    "sigla": "RS"
+    "sigla": "RS",
+    "nome_normalizado": "rio grande do sul"
   },
   "50": {
     "nome": "Mato Grosso do Sul",
-    "sigla": "MS"
+    "sigla": "MS",
+    "nome_normalizado": "mato grosso do sul"
   },
   "51": {
     "nome": "Mato Grosso",
-    "sigla": "MT"
+    "sigla": "MT",
+    "nome_normalizado": "mato grosso"
   },
   "52": {
     "nome": "Goiás",
-    "sigla": "GO"
+    "sigla": "GO",
+    "nome_normalizado": "goias"
   },
   "53": {
     "nome": "Distrito Federal",
-    "sigla": "DF"
+    "sigla": "DF",
+    "nome_normalizado": "distrito federal"
   }
 }

@@ -1,10 +1,8 @@
-// frontend\app\chat\page.tsx
-
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { UserCircleIcon } from "@heroicons/react/24/solid"
-import { CommandLineIcon } from "@heroicons/react/24/solid"
+import { UserCircleIcon, CommandLineIcon } from "@heroicons/react/24/solid"
+import ReactMarkdown from "react-markdown"
 
 type Mensagem = {
   autor: "user" | "bot"
@@ -16,6 +14,17 @@ export default function ChatPage() {
   const [historico, setHistorico] = useState<Mensagem[]>([])
   const [carregando, setCarregando] = useState(false)
   const chatRef = useRef<HTMLDivElement>(null)
+
+  // Carrega a mensagem inicial
+  useEffect(() => {
+    const carregarMensagemInicial = async () => {
+      const resposta = await fetch("http://localhost:8000/mensagem-inicial")
+      const data = await resposta.json()
+      const msgInicial: Mensagem = { autor: "bot", texto: data.mensagem }
+      setHistorico([msgInicial])
+    }
+    carregarMensagemInicial()
+  }, [])
 
   const enviarMensagem = async () => {
     if (!mensagem.trim()) return
@@ -71,14 +80,16 @@ export default function ChatPage() {
                   <CommandLineIcon className="w-8 h-8 text-gray-600" />
                 )}
               </div>
-              <div
-                className={`p-3 rounded-xl text-sm animate-fadeIn transition-all duration-300 ${
-                  msg.autor === "user"
-                    ? "bg-primary text-white"
-                    : "bg-gray-100 text-gray-800"
-                }`}
-              >
-                {msg.texto}
+              <div className={`p-3 rounded-xl text-sm transition-all duration-300 ${
+                msg.autor === "user"
+                  ? "bg-primary text-white"
+                  : "bg-gray-100 text-gray-800 prose prose-sm max-w-none"
+              }`}>
+                {msg.autor === "bot" ? (
+                  <ReactMarkdown>{msg.texto}</ReactMarkdown>
+                ) : (
+                  <span>{msg.texto}</span>
+                )}
               </div>
             </div>
           ))}
@@ -99,13 +110,15 @@ export default function ChatPage() {
           />
           <button
             onClick={enviarMensagem}
-            className="bg-primary text-white px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 hover:bg-blue-900"
+            disabled={carregando}
+            className={`px-4 py-2 rounded-xl transition-all duration-300 ${
+              carregando ? "bg-gray-300 cursor-not-allowed" : "bg-primary text-white hover:scale-105 hover:bg-blue-900"
+            }`}
           >
-            Enviar
+            {carregando ? "Enviando..." : "Enviar"}
           </button>
         </div>
       </div>
     </div>
   )
 }
-

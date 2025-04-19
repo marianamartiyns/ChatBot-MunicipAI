@@ -1,11 +1,15 @@
 import os
 import json
 import requests
+import unicodedata
 
 # pra rodar: python backend\data\coletar_municipios.py
 
 CAMINHO_MUNICIPIOS = os.path.join(os.path.dirname(__file__), "municipios.json")
 CAMINHO_ESTADOS = os.path.join(os.path.dirname(__file__), "estados.json")
+
+def normalizar(texto):
+    return unicodedata.normalize("NFKD", texto).encode("ASCII", "ignore").decode("ASCII").lower()
 
 def coletar_municipios_e_estados():
     url = "https://servicodados.ibge.gov.br/api/v1/localidades/municipios"
@@ -23,17 +27,19 @@ def coletar_municipios_e_estados():
         nome_municipio = m["nome"]
         uf = m["microrregiao"]["mesorregiao"]["UF"]
         cod_estado = str(uf["id"])
+        nome_estado = uf["nome"]
 
         municipios[cod_municipio] = {
             "nome": nome_municipio,
-            "cod_estado": cod_estado
+            "cod_estado": cod_estado,
+            "nome_normalizado": normalizar(nome_municipio)
         }
 
-        # Evita duplicatas
         if cod_estado not in estados:
             estados[cod_estado] = {
-                "nome": uf["nome"],
-                "sigla": uf["sigla"]
+                "nome": nome_estado,
+                "sigla": uf["sigla"],
+                "nome_normalizado": normalizar(nome_estado)
             }
 
     os.makedirs(os.path.dirname(CAMINHO_MUNICIPIOS), exist_ok=True)

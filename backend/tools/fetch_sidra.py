@@ -2,6 +2,7 @@ import os
 import json
 import requests
 import pandas as pd
+import unicodedata
 from sidrapy import get_table
 
 # ==================== CARREGAMENTO DE DADOS ====================
@@ -12,82 +13,54 @@ with open("backend/data/estados.json", encoding="utf-8") as f:
 with open("backend/data/municipios.json", encoding="utf-8") as f:
     MUNICIPIOS = json.load(f)
 
+# ==================== NORMALIZAÇÃO DE TEXTO ====================
+
+def normalizar(texto):
+    return unicodedata.normalize("NFKD", texto).encode("ASCII", "ignore").decode("ASCII").lower().strip()
+
 # ==================== INDICADORES ====================
 
 indicadores_municipios = {
-
     "População Total": {
         "tabela": 6579,
         "variável": 9324,
         "nível_territorial": "municipal"
     },
-
-    "Municípios com serviço de abastecimento de água por rede geral de distribuição em funcionamento (Unidades)": { #2017
-        "tabela": 7462, 
-        "variável": 1399,
-        "nível_territorial": "municipal"
+    "Municípios com serviço de abastecimento de água por rede geral de distribuição em funcionamento (Unidades)": {
+        "tabela": 7462, "variável": 1399, "nível_territorial": "municipal"
     },
-
     "Municípios com serviço de esgotamento sanitário (Unidades)": {
-        "tabela": 7461, # 2017
-        "variável": 1388,
-        "nível_territorial": "municipal"
+        "tabela": 7461, "variável": 1388, "nível_territorial": "municipal"
     },
-
     "Municípios com serviço de esgotamento sanitário por rede coletora em funcionamento (Unidades)": {
-        "tabela": 7472, # 2017
-        "variável": 1501,
-        "nível_territorial": "municipal"
+        "tabela": 7472, "variável": 1501, "nível_territorial": "municipal"
     },
-
     "Municípios com serviço de abastecimento de água por rede geral de distribuição (Unidades)": {
-        "tabela": 7460, # 2017
-        "variável": 1379,
-        "nível_territorial": "municipal"
+        "tabela": 7460, "variável": 1379, "nível_territorial": "municipal"
     },
 }
 
-
 indicadores_estados = {
-
     "População residente estimada (Pessoas)": {
-        "tabela": 6579,
-        "variável": 9325,
-        "nível_territorial": "estadual"
+        "tabela": 6579, "variável": 9325, "nível_territorial": "estadual"
     },
-
     "Produto Interno Bruto a preços correntes (Mil Reais)": {
-        "tabela": 5938,
-        "variável": 1985,
-        "nível_territorial": "estadual"
+        "tabela": 5938, "variável": 1985, "nível_territorial": "estadual"
     },
-
     "PIB per capita (Mil Reais)": {
-        "tabela": 5938,
-        "variável": 593,
-        "nível_territorial": "estadual"
+        "tabela": 5938, "variável": 593, "nível_territorial": "estadual"
     },
-
     "Rendimento médio mensal per capita em domicílios com celular (Reais)": {
-        "tabela": 7412,
-        "nível_territorial": "estadual"
+        "tabela": 7412, "nível_territorial": "estadual"
     },
-
     "Rendimento médio mensal real domiciliar per capita em domicílios que havia utilização da Internet (Reais)": {
-        "tabela": 7419,
-        "variável": 1257,
-        "nível_territorial": "estadual"
+        "tabela": 7419, "variável": 1257, "nível_territorial": "estadual"
     },
-
-    "Pessoas de 10 anos ou mais de idade cujo domicílio não possui morador que recebeu rendimento do Programa Bolsa Família (Mil pessoas)": { # 2023
-        "tabela": 7448,
-        "variável": 1244,
-        "nível_territorial": "estadual"
+    "Pessoas de 10 anos ou mais cujo domicílio não possui morador que recebeu rendimento do Bolsa Família (Mil)": {
+        "tabela": 7448, "variável": 1244, "nível_territorial": "estadual"
     },
-
-    "Domicílios em que algum morador do domicílio recebeu rendimento do Benefício de Prestação Continuada (Mil unidades)": {
-        "tabela": 7451,
-        "nível_territorial": "estadual"
+    "Domicílios com algum morador que recebeu Benefício de Prestação Continuada (Mil)": {
+        "tabela": 7451, "nível_territorial": "estadual"
     }
 }
 
@@ -100,14 +73,16 @@ def get_sigla_estado(cod_estado):
     return ESTADOS.get(str(cod_estado), {}).get("sigla")
 
 def get_cod_estado_por_nome(nome_estado):
+    nome_norm = normalizar(nome_estado)
     for cod, info in ESTADOS.items():
-        if info["nome"].lower() == nome_estado.lower():
+        if info.get("nome_normalizado") == nome_norm:
             return cod
     return None
 
 def get_cod_municipio_por_nome(nome_mun):
+    nome_norm = normalizar(nome_mun)
     for cod, info in MUNICIPIOS.items():
-        if info["nome"].lower() == nome_mun.lower():
+        if info.get("nome_normalizado") == nome_norm:
             return cod
     return None
 
@@ -182,8 +157,8 @@ def coletar_dados_local(codigo_local):
 # ==================== FERRAMENTAS PARA AGENTE ====================
 
 def responder_coleta_sidra(pergunta: str) -> str:
-    pergunta_lower = pergunta.lower()
-    cod = get_cod_municipio_por_nome(pergunta_lower) or get_cod_estado_por_nome(pergunta_lower)
+    pergunta_norm = normalizar(pergunta)
+    cod = get_cod_municipio_por_nome(pergunta_norm) or get_cod_estado_por_nome(pergunta_norm)
 
     if not cod:
         return "Não identifiquei a localidade. Tente informar o nome exato de um município ou estado."
@@ -202,16 +177,16 @@ def responder_coleta_sidra(pergunta: str) -> str:
     return "\n".join(resumo) if resumo else "Não consegui resumir os dados."
 
 def consultar_sidra_chatbot(pergunta: str) -> str:
-    pergunta_lower = pergunta.lower()
-    cod = get_cod_municipio_por_nome(pergunta_lower) or get_cod_estado_por_nome(pergunta_lower)
+    pergunta_norm = normalizar(pergunta)
+    cod = get_cod_municipio_por_nome(pergunta_norm) or get_cod_estado_por_nome(pergunta_norm)
     if not cod:
         return "Localidade não reconhecida."
 
-    if "pib" in pergunta_lower:
+    if "pib" in pergunta_norm:
         tabela, variaveis = "2938", "37"
-    elif "população" in pergunta_lower:
+    elif "populacao" in pergunta_norm:
         tabela, variaveis = "6579", "93"
-    elif "leite" in pergunta_lower:
+    elif "leite" in pergunta_norm:
         tabela, variaveis = "1419", "214"
     else:
         return "Indicador não reconhecido."
