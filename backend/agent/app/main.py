@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.agent.agent import responder_pergunta 
+from backend.agent.agent import responder_pergunta , responder_houer
 from backend.tools.fetch_wikipedia import coletar_dados_wikipedia
 
 app = FastAPI()
@@ -27,10 +27,15 @@ def raiz():
     return {"mensagem": "✅ API do Chatbot Municípios está no ar."}
 
 # Rota para receber perguntas do frontend
+
 @app.post("/responder")
 def responder(pergunta: Pergunta):
-    resposta = responder_pergunta(pergunta.texto)
-    return {"resposta": resposta}
+    return {"resposta": responder_pergunta(pergunta.texto)}
+
+@app.post("/dados-houer")
+def dados_houer(pergunta: Pergunta):
+    return {"resposta": responder_houer(pergunta.texto)}
+
 
 @app.get("/mensagem-inicial")
 def mensagem_inicial():
@@ -80,3 +85,5 @@ def wikipedia_estado(body: Nome):
         return coletar_dados_wikipedia(body.nome, tipo="estado")
     except Exception as e:
         return {"erro": str(e)}
+    
+

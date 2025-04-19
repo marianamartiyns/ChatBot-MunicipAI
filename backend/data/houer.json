@@ -1,0 +1,134 @@
+{
+  "empresa": {
+    "nome": "Grupo Houer",
+    "descricao": "Especialista em infraestrutura, o Grupo Houer atua no desenvolvimento de projetos de engenharia e viabilização de soluções na área de infraestrutura, priorizando a qualidade técnica dos trabalhos, atendimento próximo ao cliente e objetividade nos resultados.",
+    "missao": "Transformar o mundo por meio da infraestrutura com foco em soluções ágeis, inovadoras e sustentáveis.",
+    "visao": "Ser referência nacional no mercado de estruturação de projetos de infraestrutura, reconhecida pela sua capacidade de antecipar tendências e excelência na entrega de soluções inovadoras e sustentáveis.",
+    "proposito": "Impactar positivamente a vida das pessoas e das futuras gerações.",
+    "valores": [
+      "Inovação",
+      "Excelência e Comprometimento",
+      "Pessoas",
+      "Encantamento",
+      "Sustentabilidade",
+      "Resiliência"
+    ],
+    "certificacoes": [
+      "ISO 9001",
+      "Great Place to Work (GPTW)"
+    ]
+  },
+  "cultura": {
+    "etica_integridade": "O Grupo Houer é conhecido pela seriedade de seus serviços. Nossas empresas atuam de forma independente ou conjunta, oferecendo soluções eficientes aos nossos clientes e parceiros, balizados em uma única ideia: garantir a segurança e integridade de todos os envolvidos - desde colaboradores até os fornecedores.",
+    "compliance": "A Houer monitora e avalia o desenvolvimento e as atividades de seus colaboradores com relação ao cumprimento do previsto nos contratos e nos Valores, Crenças e Regras consolidados pela empresa. O monitoramento e a avaliação têm como objetivo apoiar o aprimoramento da gestão interna, além de fortalecer as relações."
+  },
+  "servicos": [
+    {
+      "nome": "Estruturação e Modelagens para Concessões e PPPs",
+      "descricao": "Desenvolvimento de projetos de modelagens, desde a estruturação até a finalização, abrangendo áreas técnicas como jurídica, econômico-financeira e técnico-operacional."
+    },
+    {
+      "nome": "Verificador Independente",
+      "descricao": "Acompanhamento da execução de contratos entre o setor público e privado, garantindo melhorias contínuas e análise completa dos resultados."
+    },
+    {
+      "nome": "Infraestrutura Social",
+      "descricao": "Projetos voltados para o desenvolvimento de infraestrutura que impacta diretamente na qualidade de vida da população."
+    },
+    {
+      "nome": "Consultoria",
+      "descricao": "Consultorias junto a órgãos públicos, focando na capacitação de gestores e servidores públicos para garantir crescimento e eficiência das instituições."
+    },
+    {
+      "nome": "Energia Renovável",
+      "descricao": "Soluções sustentáveis voltadas para o setor de energia, promovendo o uso de fontes renováveis."
+    },
+    {
+      "nome": "Gerenciamento, Supervisão e Fiscalização",
+      "descricao": "Serviços de gerenciamento de empreendimentos de infraestrutura e construção civil, desde a elaboração de estudos até a conclusão do empreendimento."
+    },
+    {
+      "nome": "Requalificação Urbana",
+      "descricao": "Projetos que visam a revitalização e melhoria de áreas urbanas, promovendo desenvolvimento sustentável e qualidade de vida."
+    },
+    {
+      "nome": "Elaboração e Análise de Projeto Executivo de Infraestrutura",
+      "descricao": "Desenvolvimento e avaliação de projetos executivos detalhados para obras de infraestrutura."
+    },
+    {
+      "nome": "Elaboração e Análise de Planos Municipais",
+      "descricao": "Criação e revisão de planos municipais, alinhando estratégias locais com diretrizes de desenvolvimento sustentável."
+    },
+    {
+      "nome": "Estudos e Levantamentos",
+      "descricao": "Realização de estudos técnicos e levantamentos para embasar projetos e tomadas de decisão."
+    },
+    {
+      "nome": "Reequilíbrio Econômico-Financeiro",
+      "descricao": "Análise e proposição de medidas para manter o equilíbrio financeiro de contratos e projetos."
+    },
+    {
+      "nome": "Elaboração de Plano de Concessões",
+      "descricao": "Desenvolvimento de planos estratégicos para concessões públicas, considerando aspectos legais, técnicos e financeiros."
+    },
+    {
+      "nome": "Capacitações",
+      "descricao": "Programas de treinamento e capacitação para gestores e servidores públicos, visando aprimoramento de competências e eficiência institucional."
+    }
+  ],
+  "empresas_do_grupo": [
+    {
+      "nome": "Houer Concessões",
+      "descricao": "Empresa com reconhecida experiência no assessoramento para a estruturação de projetos de Concessão de Serviços Públicos junto a órgãos públicos e entes privados."
+    },
+    {
+      "nome": "Houer Engenharia",
+      "descricao": "Preparada para atender a demanda do mercado de engenharia no Brasil por serviços de gerenciamento de empreendimentos de infraestrutura e construção civil em geral."
+    },
+    {
+      "nome": "Houer Tecnologia",
+      "descricao": "Foco na criação de soluções de arquiteturas de sistemas associados à modelagem de negócios, desenvolvidas para contextos sociais, científicos e corporativos."
+    }
+  ],
+  "areas_atuacao": [
+    "Iluminação Pública",
+    "Educação",
+    "Saúde",
+    "Transporte Público",
+    "Rodovias",
+    "Cemitérios e Serviços Funerários",
+    "Planejamento Urbano",
+    "Centros de Conveniência e Mercado",
+    "Fundos Imobiliários e Soberanos",
+    "Saneamento",
+    "Mineração",
+    "Ferrovias",
+    "Parques Públicos",
+    "Aeroportos",
+    "Conectividade e Soluções Digitais",
+    "Hidrovias e Portos",
+    "Energia Renovável",
+    "Cidades Inteligentes",
+    "Mobiliário Urbano",
+    "Obras Civis",
+    "Desestatização"
+  ],
+  "contato": {
+    "email": "comercial@houer.com.br",
+    "telefone": "+55 (31) 3508-7375",
+    "endereco": "Rua Maranhão, 166 - 10º andar - Santa Efigênia, Belo Horizonte - MG, CEP: 30.150-330",
+    "horario_atendimento": "Segunda a sexta-feira, das 8h00 às 18h00"
+  },
+  "escritorios": [
+    "Nova Lima - MG",
+    "São Paulo - SP",
+    "Cuiabá - MT",
+    "Três Lagoas - MS",
+    "Fortaleza - CE",
+    "Rio de Janeiro - RJ",
+    "Salvador - BA",
+    "Palmas e Gurupi - TO",
+    "Governador Valadares - MG",
+    "Joanesburgo - ZA"
+  ]
+}

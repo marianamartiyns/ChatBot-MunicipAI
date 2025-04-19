@@ -26,30 +26,48 @@ export default function ChatPage() {
     carregarMensagemInicial()
   }, [])
 
+  // Função para detectar se a pergunta é sobre a empresa Houer
+  const ehPerguntaHouer = (texto: string) => {
+    const textoLower = texto.toLowerCase()
+    const termosEmpresa = [
+      "houer", "empresa houer", "grupo houer", "missão", "valores", "visão",
+      "propósito", "cultura", "ética", "compliance", "houer engenharia",
+      "houer concessões", "houer tecnologia", "contato houer", "escritório houer"
+    ]
+    return termosEmpresa.some((termo) => textoLower.includes(termo))
+  }  
+
+  // Envio da pergunta com roteamento condicional
   const enviarMensagem = async () => {
     if (!mensagem.trim()) return
     const novaPergunta: Mensagem = { autor: "user", texto: mensagem }
     setHistorico((prev) => [...prev, novaPergunta])
     setMensagem("")
     setCarregando(true)
-
+  
     try {
-      const resposta = await fetch("http://localhost:8000/responder", {
+      const endpoint = ehPerguntaHouer(novaPergunta.texto)
+        ? "http://localhost:8000/dados-houer"
+        : "http://localhost:8000/responder"
+  
+      console.log("🔍 Enviando para:", endpoint)
+  
+      const resposta = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ texto: novaPergunta.texto }),
       })
+  
       const data = await resposta.json()
       const respostaBot: Mensagem = { autor: "bot", texto: data.resposta }
-
       setHistorico((prev) => [...prev, respostaBot])
     } catch (e) {
       setHistorico((prev) => [...prev, { autor: "bot", texto: "Erro ao obter resposta." }])
     }
-
+  
     setCarregando(false)
   }
-
+  
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" })
   }, [historico, carregando])
@@ -80,11 +98,13 @@ export default function ChatPage() {
                   <CommandLineIcon className="w-8 h-8 text-gray-600" />
                 )}
               </div>
-              <div className={`p-3 rounded-xl text-sm transition-all duration-300 ${
-                msg.autor === "user"
-                  ? "bg-primary text-white"
-                  : "bg-gray-100 text-gray-800 prose prose-sm max-w-none"
-              }`}>
+              <div
+                className={`p-3 rounded-xl text-sm transition-all duration-300 ${
+                  msg.autor === "user"
+                    ? "bg-primary text-white"
+                    : "bg-gray-100 text-gray-800 prose prose-sm max-w-none"
+                }`}
+              >
                 {msg.autor === "bot" ? (
                   <ReactMarkdown>{msg.texto}</ReactMarkdown>
                 ) : (
