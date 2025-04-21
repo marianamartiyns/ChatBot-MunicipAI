@@ -73,8 +73,8 @@ export default function ChatPage() {
   }, [historico, carregando])
 
   return (
-    <div className="h-screen w-full bg-gray-50 flex items-center justify-center overflow-hidden">
-      <div className="w-full max-w-4xl h-full flex flex-col p-6">
+    <div className=" bg-gray-50 flex items-center justify-center overflow-hidden">
+      <div className="max-w-4xl h-full flex flex-col p-6">
         <h1 className="text-3xl font-bold text-center text-primary mb-4">
           Chatbot de Indicadores
         </h1>

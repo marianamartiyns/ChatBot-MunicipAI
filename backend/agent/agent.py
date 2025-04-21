@@ -1,4 +1,3 @@
-
 import json
 import os
 import unicodedata
@@ -26,8 +25,9 @@ llm = ChatGroq(
     api_key=GROQ_API_KEY
 )
 
-# === Memória de conversa (caso necessário futuramente) ===
-memory = ConversationBufferMemory(memory_key="chat_history")
+# === Memória de conversa com recuperação de última localidade ===
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+ultima_localidade = {"tipo": "", "cod": "", "nome": ""}  # usado para manter contexto
 
 # === Ferramentas de busca ===
 from backend.tools.fetch_ibge import extrair_dados_municipio, carregar_dados_estaduais
@@ -48,11 +48,9 @@ def identificar_local(pergunta: str):
     pergunta_norm = normalizar_texto(pergunta)
     palavras = set(pergunta_norm.split())
 
-    # Detecta intenção explícita
     quer_estado = "estado" in palavras or "estado de" in pergunta_norm
     quer_municipio = "municipio" in palavras or "cidade" in palavras or "municipio de" in pergunta_norm
 
-    # Primeiro: se for estado declarado
     if quer_estado:
         for cod, est in ESTADOS.items():
             nome = est.get("nome", "")
@@ -62,7 +60,6 @@ def identificar_local(pergunta: str):
             if nome_norm in palavras or sigla_norm in palavras or nome_norm in pergunta_norm:
                 return "estado", cod, nome
 
-    # Segundo: se for município declarado
     if quer_municipio:
         for cod, mun in MUNICIPIOS.items():
             nome = mun.get("nome", "")
@@ -70,25 +67,22 @@ def identificar_local(pergunta: str):
             if nome_norm in palavras or nome_norm in pergunta_norm:
                 return "municipio", cod, nome
 
-    # Se não há intenção clara → priorizar municípios compostos
     municipios_ordenados = sorted(MUNICIPIOS.items(), key=lambda x: -len(x[1].get("nome", "")))
     for cod, mun in municipios_ordenados:
         nome = mun.get("nome", "")
         nome_norm = normalizar_texto(nome)
-        if nome_norm in palavras or nome_norm in pergunta_norm:
+        if nome_norm in pergunta_norm:
             return "municipio", cod, nome
 
-    # Se ainda nada, tenta estados por último
     for cod, est in ESTADOS.items():
         nome = est.get("nome", "")
         sigla = est.get("sigla", "")
         nome_norm = normalizar_texto(nome)
         sigla_norm = normalizar_texto(sigla)
-        if nome_norm in palavras or sigla_norm in palavras or nome_norm in pergunta_norm:
+        if nome_norm in pergunta_norm or sigla_norm in pergunta_norm:
             return "estado", cod, nome
 
     return "", "", ""
-
 
 # === Coleta e formatação dos dados ===
 def coletar_dados_local(tipo: str, cod: str, nome: str) -> tuple[str, str]:
@@ -112,14 +106,22 @@ def coletar_dados_local(tipo: str, cod: str, nome: str) -> tuple[str, str]:
 
 # === Função principal do agente (municipal/estadual) ===
 def responder_pergunta(pergunta: str) -> str:
+    global ultima_localidade
     try:
         tipo, cod, nome = identificar_local(pergunta)
+
+        if not tipo and ultima_localidade["cod"]:
+            tipo, cod, nome = ultima_localidade["tipo"], ultima_localidade["cod"], ultima_localidade["nome"]
+
         if tipo:
+            ultima_localidade = {"tipo": tipo, "cod": cod, "nome": nome}
             dados_texto, fonte = coletar_dados_local(tipo, cod, nome)
 
             prompt = f"""
-Você é um assistente de dados públicos que responde de forma **clara, direta e objetiva**.
-Use os dados abaixo para responder à pergunta do usuário. Se a informação exata não estiver nos dados, diga isso de forma curta e transparente — sem enrolar.
+Você é um assistente de dados públicos da Houer que responde de forma **clara, direta e objetiva**.
+Use os dados abaixo para responder à pergunta do usuário. 
+Se a informação exata não estiver disponível, informe isso com transparência e proponha o dado mais recente relacionado, se possível.
+Evite repetir frases genéricas e não prolongue a resposta desnecessariamente.
 
 Local consultado: {nome}
 Fonte: {fonte}
@@ -132,20 +134,28 @@ Resposta:"""
             resposta = llm.predict(prompt)
             return f"{resposta}\n\nFonte: {fonte}"
         else:
-            return "❌ Não consegui identificar o município ou estado mencionado na pergunta."
+            return (
+                "🤔 Não consegui identificar com clareza o município ou estado mencionados. "
+                "Tente reformular sua pergunta ou incluir o nome completo do local."
+            )
     except Exception as e:
-        return "⚠️ Ocorreu um erro inesperado ao processar sua pergunta. Tente novamente em instantes."
-
+        return (
+            "Tivemos um problema ao processar sua pergunta. "
+            "Por favor, tente novamente em instantes."
+        )
 
 # === Função específica para perguntas sobre a Houer ===
 def responder_houer(pergunta: str) -> str:
     try:
         resposta = consultar_houer(pergunta)
         if "❌" in resposta:
-            return "❌ Informação não encontrada nos dados institucionais da Houer."
+            return (
+                "Informação não encontrada nos dados institucionais da Houer. "
+                "Verifique se a pergunta está correta ou reformule."
+            )
         return f"{resposta}\n\nFonte: dados institucionais Houer"
     except Exception as e:
-        return "⚠️ Erro ao consultar dados institucionais da Houer."
+        return "Ocorreu um erro ao consultar dados institucionais da Houer."
 
 # === Mensagem inicial automática ===
 mensagem_inicial = (
