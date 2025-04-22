@@ -1,3 +1,5 @@
+# backend\agent\agent.py
+
 import json
 import os
 import unicodedata
@@ -27,7 +29,7 @@ llm = ChatGroq(
 
 # === Memória de conversa com recuperação de última localidade ===
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-ultima_localidade = {"tipo": "", "cod": "", "nome": ""}  # usado para manter contexto
+ultima_localidade = {"tipo": "", "cod": "", "nome": ""}
 
 # === Ferramentas de busca ===
 from backend.tools.fetch_ibge import extrair_dados_municipio, carregar_dados_estaduais
@@ -108,16 +110,34 @@ def coletar_dados_local(tipo: str, cod: str, nome: str) -> tuple[str, str]:
 def responder_pergunta(pergunta: str) -> str:
     global ultima_localidade
     try:
+        # Detecta perguntas institucionais da Houer
+        if any(p in pergunta.lower() for p in [
+            "houer", "empresa", "serviços", "servicos", "missão", "visão", "proposito",
+            "valores", "certificação", "concessões", "engenharia", "tecnologia",
+            "áreas de atuação", "parceiros", "escritórios", "contato", "cultura", "compliance"
+        ]):
+            return responder_houer(pergunta)
+
         tipo, cod, nome = identificar_local(pergunta)
 
         if not tipo and ultima_localidade["cod"]:
             tipo, cod, nome = ultima_localidade["tipo"], ultima_localidade["cod"], ultima_localidade["nome"]
 
-        if tipo:
+        if tipo and cod:
             ultima_localidade = {"tipo": tipo, "cod": cod, "nome": nome}
             dados_texto, fonte = coletar_dados_local(tipo, cod, nome)
+        elif tipo and nome:
+            dados = coletar_dados_wikipedia(nome, tipo=tipo)
+            fonte = "Wikipedia"
+            dados_texto = "\n".join([f"- {k}: {v}" for k, v in dados.items() if k.lower() != "fonte"])
+            ultima_localidade = {"tipo": tipo, "cod": "", "nome": nome}
+        else:
+            return (
+                "🤔 Não consegui identificar com clareza o município ou estado mencionados. "
+                "Tente reformular sua pergunta ou incluir o nome completo do local."
+            )
 
-            prompt = f"""
+        prompt = f"""
 Você é um assistente de dados públicos da Houer que responde de forma **clara, direta e objetiva**.
 Use os dados abaixo para responder à pergunta do usuário. 
 Se a informação exata não estiver disponível, informe isso com transparência e proponha o dado mais recente relacionado, se possível.
@@ -131,18 +151,15 @@ Dados disponíveis:
 Pergunta: {pergunta}
 
 Resposta:"""
-            resposta = llm.predict(prompt)
-            return f"{resposta}\n\nFonte: {fonte}"
-        else:
-            return (
-                "🤔 Não consegui identificar com clareza o município ou estado mencionados. "
-                "Tente reformular sua pergunta ou incluir o nome completo do local."
-            )
+        resposta = llm.predict(prompt)
+        return f"{resposta}\n\nFonte: {fonte}"
+
     except Exception as e:
         return (
             "Tivemos um problema ao processar sua pergunta. "
             "Por favor, tente novamente em instantes."
         )
+
 
 # === Função específica para perguntas sobre a Houer ===
 def responder_houer(pergunta: str) -> str:

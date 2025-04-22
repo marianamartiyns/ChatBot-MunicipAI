@@ -130,5 +130,14 @@
     "Palmas e Gurupi - TO",
     "Governador Valadares - MG",
     "Joanesburgo - ZA"
-  ]
+  ],
+  "parceiros": [
+  "Caixa Econômica Federal", "BNDES", "VALE", "CAF", "PPI", 
+  "Governo de SP", "Governo do MT", "Prefeitura de Belo Horizonte", 
+  "Prefeitura de Guarulhos", "DER-MG", "CESAN", "DNIT"
+  ],
+  "redes_sociais": {
+    "linkedin": "https://www.linkedin.com/company/houer",
+    "instagram": "https://www.instagram.com/grupohouer/"
+  }
 }
