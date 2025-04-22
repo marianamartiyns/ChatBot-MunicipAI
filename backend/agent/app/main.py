@@ -4,7 +4,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from backend.agent.agent import responder_pergunta , responder_houer
-from backend.tools.fetch_wikipedia import coletar_dados_wikipedia
 
 app = FastAPI()
 
@@ -65,25 +64,3 @@ def lista_estados():
 @app.get("/lista-municipios")
 def lista_municipios():
     return [{"codigo": cod, **dados} for cod, dados in MUNICIPIOS.items()]
-
-
-# ==================== FERRAMENTAS WIKIPEDIA ====================
-
-class Nome(BaseModel):
-    nome: str
-
-@app.post("/wikipedia-municipio")
-def wikipedia_municipio(body: Nome):
-    try:
-        return coletar_dados_wikipedia(body.nome, tipo="municipio")
-    except Exception as e:
-        return {"erro": str(e)}
-
-@app.post("/wikipedia-estado")
-def wikipedia_estado(body: Nome):
-    try:
-        return coletar_dados_wikipedia(body.nome, tipo="estado")
-    except Exception as e:
-        return {"erro": str(e)}
-    
-
