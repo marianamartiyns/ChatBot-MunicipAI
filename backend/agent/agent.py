@@ -151,7 +151,8 @@ Pergunta: {pergunta}
 
 Resposta:"""
             resposta = llm.invoke(prompt)
-            return f"{resposta}\n\nFonte: {fonte}"
+            return f"{resposta.content}\n\nFonte: {fonte}"
+
 
         return (
             "Dados do local não foram encontrados. "
