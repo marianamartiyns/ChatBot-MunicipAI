@@ -1,66 +1,74 @@
-// app/components/SelectComBusca.tsx
 "use client"
 
-import { useState } from "react"
-import { Combobox } from "@headlessui/react"
+import { useState, useEffect } from "react"
 
 type Opcao = {
   codigo: string
   nome: string
+  sigla?: string
 }
 
-type Props = {
+interface SelectComBuscaProps {
   opcoes: Opcao[]
   onChange: (codigo: string) => void
-  label?: string
+  label: string
 }
 
-export default function SelectComBusca({ opcoes, onChange, label }: Props) {
-  const [query, setQuery] = useState("")
+export default function SelectComBusca({ opcoes, onChange, label }: SelectComBuscaProps) {
+  const [busca, setBusca] = useState("")
+  const [aberto, setAberto] = useState(false)
   const [selecionado, setSelecionado] = useState<Opcao | null>(null)
 
-  const filtradas =
-    query === ""
-      ? opcoes
-      : opcoes.filter((o) =>
-          o.nome.toLowerCase().includes(query.toLowerCase())
-        )
+  const opcoesFiltradas = opcoes.filter((opcao) =>
+    opcao.nome.toLowerCase().includes(busca.toLowerCase()) ||
+    (opcao.sigla && opcao.sigla.toLowerCase().includes(busca.toLowerCase()))
+  )
+
+  const selecionar = (codigo: string) => {
+    const escolhido = opcoes.find((op) => op.codigo === codigo)
+    if (escolhido) {
+      setSelecionado(escolhido)
+      setBusca(escolhido.nome) // Mostra o nome no campo
+      onChange(codigo)
+    }
+    setAberto(false)
+  }
+
+  // Caso o usuário apague manualmente o conteúdo do input
+  useEffect(() => {
+    if (busca === "") {
+      setSelecionado(null)
+    }
+  }, [busca])
 
   return (
-    <div className="w-80">
-      {label && <label className="text-sm text-gray-600 mb-1 block">{label}</label>}
-      <Combobox value={selecionado} onChange={(e) => {
-        setSelecionado(e)
-        if (e) onChange(e.codigo)
-      }}>
-        <div className="relative">
-          <Combobox.Input
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full border rounded-md px-4 py-2"
-            displayValue={(o: Opcao) => o?.nome || ""}
-            placeholder="Digite para buscar"
-          />
-          <Combobox.Options className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 overflow-auto rounded-md border">
-            {filtradas.length === 0 ? (
-              <div className="p-2 text-sm text-gray-500">Nenhuma opção encontrada</div>
-            ) : (
-              filtradas.map((opcao) => (
-                <Combobox.Option
-                  key={opcao.codigo}
-                  value={opcao}
-                  className={({ active }) =>
-                    `cursor-pointer px-4 py-2 text-sm ${
-                      active ? "bg-blue-100" : ""
-                    }`
-                  }
-                >
-                  {opcao.nome}
-                </Combobox.Option>
-              ))
-            )}
-          </Combobox.Options>
+    <div className="relative w-64">
+      <label className="text-sm text-gray-600 mb-1 block">{label}</label>
+      <input
+        type="text"
+        value={busca}
+        onChange={(e) => setBusca(e.target.value)}
+        onFocus={() => setAberto(true)}
+        placeholder="Digite para buscar..."
+        className="w-full border rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+      />
+      {aberto && (
+        <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+          {opcoesFiltradas.length > 0 ? (
+            opcoesFiltradas.map((opcao) => (
+              <div
+                key={opcao.codigo}
+                onClick={() => selecionar(opcao.codigo)}
+                className="px-4 py-2 cursor-pointer hover:bg-blue-100 text-sm"
+              >
+                {opcao.nome} {opcao.sigla ? `(${opcao.sigla})` : ""}
+              </div>
+            ))
+          ) : (
+            <div className="px-4 py-2 text-gray-400 text-sm">Nenhuma opção encontrada</div>
+          )}
         </div>
-      </Combobox>
+      )}
     </div>
   )
 }
