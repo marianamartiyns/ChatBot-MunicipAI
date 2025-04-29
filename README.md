@@ -7,7 +7,6 @@ Este projeto consiste em um chatbot inteligente desenvolvido para uso interno da
 O chatbot foi construído com base em três fontes principais de dados:
 
 - **IBGE (SIDRA e site institucional)**: fonte oficial para indicadores demográficos, sociais e econômicos, coletados via API e scraping estruturado.
-- **Wikipedia**: utilizada como fallback automático para localidades ou temas não disponíveis no IBGE, com foco em seções como Educação, Saneamento e Transportes.
 - **Base Institucional da Houer**: estrutura em JSON com perguntas e respostas sobre a atuação da empresa.
 
 Todas as localidades foram organizadas por código IBGE em arquivos `.json`, com nomes normalizados para permitir buscas robustas.
@@ -76,7 +75,7 @@ com comunicação via HTTP (`/responder`, `/mensagem-inicial`, etc).
 
 Basta criar um webhook que conecte o canal ao endpoint `/responder`.
 
-### 2. O que garante que o chatbot continuará funcionando se o site do IBGE ou Wikipedia sair do ar?
+### 2. O que garante que o chatbot continuará funcionando se o site do IBGE sair do ar?
 
 A arquitetura prevê três níveis de segurança:
 

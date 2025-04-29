@@ -125,7 +125,7 @@ export default function PainelPage() {
               let matchAno = /\[(\d{4})\]/.exec(texto)
               let ano = matchAno ? matchAno[1] : null
 
-              let valorPrincipal = texto.replace(/\s*\[\d{4}\]/, "").replace(/[^\x20-\x7E]/g, "")
+              let valorPrincipal = texto.replace(/\s*\[\d{4}\]/, "").trim()
               let isLink = typeof valorPrincipal === "string" && valorPrincipal.startsWith("http")
 
               return (
