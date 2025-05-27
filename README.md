@@ -1,71 +1,71 @@
-# 🤖 Chatbot – Assistente de Indicadores Municipais e Estaduais
+# 🤖 Chatbot – Assistant for Municipal and State Indicators
 
-> Chatbot inteligente com Painel de Indicadores desenvolvido para uso interno de uma empresa privada, com o objetivo de fornecer respostas rápidas e confiáveis sobre dados públicos de municípios e estados brasileiros, além de informações institucionais da própria empresa. A solução integra scraping, APIs públicas, LLMs e uma interface interativa.
+> [PT/BR] Chatbot inteligente com Painel de Indicadores desenvolvido para uso interno de uma empresa privada, com o objetivo de fornecer respostas rápidas e confiáveis sobre dados públicos de municípios e estados brasileiros, além de informações institucionais da própria empresa. A solução integra scraping, APIs públicas, LLMs e uma interface interativa.
 
-O chatbot foi construído com base em três fontes principais de dados:
+The chatbot was built using three main data sources:
 
-- **IBGE (SIDRA e site institucional)**: fonte oficial para indicadores demográficos, sociais e econômicos, coletados via API e scraping estruturado.
-- **Base Institucional da Empresa**: estrutura em JSON com perguntas e respostas sobre a atuação da empresa (dados disponibilizados via Website oficial).
+- **IBGE (SIDRA and institutional website)**: the official source for demographic, social, and economic indicators, collected via API and structured scraping.
+- **Company’s Institutional Database**: a JSON-based structure with Q&A about the company’s operations (data provided through the official website).
 
-Todas as localidades foram organizadas por código IBGE em arquivos `.json`, com nomes normalizados.
+All locations are organized by IBGE code in `.json` files with normalized names.
 
 https://github.com/user-attachments/assets/6a15b904-fa2e-4f24-8063-8d694701d1b2
 
 ### 🔨 Modeling
 
-O modelo utilizado é o **LLaMA 3-8B** via **Groq**, com temperatura 0.5 para manter equilíbrio entre precisão e fluência.
+The model used is **LLaMA 3-8B** via **Groq**, with a temperature of 0.5 to balance accuracy and fluency.
 
-> Fluxo de geração de resposta:
-> 1. Identificação do município ou estado mencionado.
-> 2. Coleta de dados estruturados (SIDRA ou IBGE CIDADES).
-> 3. Construção de um prompt com os dados reais + pergunta do usuário.
-> 4. Envio do prompt ao modelo LLM e formatação da resposta.
-> 5. Citação automática da fonte usada.
+> Response generation flow:
+> 1. Identify the municipality or state mentioned.
+> 2. Retrieve structured data (from SIDRA or IBGE CIDADES).
+> 3. Build a prompt with real data + user question.
+> 4. Send the prompt to the LLM and format the answer.
+> 5. Automatically cite the source used.
 
-Perguntas institucionais são tratadas separadamente, com busca direta na base textual da empresa.
+Institutional questions are handled separately, using a direct search in the company’s text database.
 
 ### 🚀 Deployment
 
-O backend foi desenvolvido em **Python (FastAPI)**, com endpoints RESTful para interação com o frontend e comunicação com a LLM.
+The backend was developed in **Python (FastAPI)**, with RESTful endpoints for frontend interaction and LLM communication.
 
-O frontend foi construído com **Next.js**, com uma interface que permite:
-- Consultar indicadores por município ou estado.
-- Enviar perguntas em linguagem natural.
-- Visualizar a fonte dos dados retornados.
+The frontend was built using **Next.js**, offering an interface that allows users to:
+- Browse indicators by municipality or state.
+- Ask questions in natural language.
+- View the source of the returned data.
 
-A LLM é hospedada pela **plataforma Groq**, e o scraping é realizado em tempo real, apenas quando necessário.
+The LLM is hosted on the **Groq platform**, and scraping is performed in real time, only when necessary.
 
 > [!note]
-> Hospedagem pode ser realizada com:
+> Hosting options include:
 > - **Render ou Railway** (backend FastAPI),
-> - **Vercel** (frontend Next.js), com comunicação via HTTP (`/responder`, `/mensagem-inicial`, etc).
+> - **Vercel** (frontend Next.js), with HTTP communication (`/responder`, `/mensagem-inicial`, etc).
 
-### 🧭 Melhorias Futuras
+### 🧭 Future Improvements
 
-- [ ] **Salvar logs de perguntas e fontes utilizadas**, para análise futura e melhoria da base.
-- [ ] **Integração com banco de dados relacional**, eliminando dependência de arquivos locais.
-- [ ] **Extração de novos temas** (ex: saúde, economia, segurança pública).
-- [ ] **Treinamento de modelo leve fine-tuned** com base nas perguntas reais mais frequentes.
-- [ ] **Sistema de feedback do usuário** (👍/👎) para melhoria contínua das respostas.
+- [ ] **Log questions and sources used** for future analysis and knowledge base improvements.
+- [ ] **Integrate a relational database**, removing the dependency on local files.
+- [ ] **Expand to new topics** (e.g., health, economy, public safety).
+- [ ] **Train a lightweight fine-tuned model** based on frequently asked questions.
+- [ ] **Implement a user feedback system** (👍/👎) for continuous answer improvement.
 
 ```
-❓ FAQ – Dúvidas Frequentes
+❓ FAQ – Frequently Asked Questions
 
-1. É possível integrar este chatbot ao WhatsApp ou Telegram?
+1. Can this chatbot be integrated with WhatsApp or Telegram?
 
-  Sim, o backend já está estruturado com FastAPI, o que permite integração com:
-    - WhatsApp via Twilio ou 360Dialog API
-    - Telegram via Bot API oficial
+  Yes, the backend is already structured with FastAPI, which allows integration with:
+    - WhatsApp via Twilio or 360Dialog API
+    - Telegram via the official Bot API
 
-  Basta criar um webhook que conecte o canal ao endpoint `/responder`.
+  You just need to create a webhook that connects the channel to the `/responder` endpoint.
 
-2. O que garante que o chatbot continuará funcionando se o site do IBGE sair do ar?
+2. What ensures the chatbot will keep working if the IBGE website goes offline?
 
-A arquitetura prevê três níveis de segurança:
+The architecture has three levels of fallback:
 
-1. Dados locais `.json` já armazenados (funcionam offline);
-2. Fallback dinâmico entre IBGE e Wikipedia (caso uma falhe, a outra cobre);
-3. Em último caso, o bot retorna uma mensagem clara informando que a fonte está temporariamente indisponível.
+1. Locally stored `.json` data (works offline);
+2. Dynamic fallback between IBGE and Wikipedia (if one fails, the other takes over);
+3. As a last resort, the bot returns a clear message stating the source is temporarily unavailable.
 ```
 <a> <img align="right" width="90px" src="https://fastapi.tiangolo.com/img/logo-margin/logo-teal.png">
 <img align="right" width ='40px' src ='https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg'>
